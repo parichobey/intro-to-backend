@@ -12,19 +12,20 @@ async function runTests() {
     console.log("🧪 STARTING COMPREHENSIVE END-TO-END TESTS");
     console.log("==========================================\n");
 
-    // 1. Connect to MongoDB
-    console.log("📡 Connecting to live MongoDB Atlas...");
-    await connectDB();
-
-    // 2. Start Express Server
-    const server = await new Promise((resolve) => {
-        const s = app.listen(PORT, () => resolve(s));
-    });
-    console.log(`✅ Test Express server listening on http://localhost:${PORT}\n`);
-
-    const BASE_URL = `http://localhost:${PORT}`;
-
+    let server;
     try {
+        // 1. Connect to MongoDB
+        console.log("📡 Connecting to live MongoDB Atlas...");
+        await connectDB();
+
+        // 2. Start Express Server
+        server = await new Promise((resolve) => {
+            const s = app.listen(PORT, () => resolve(s));
+        });
+        console.log(`✅ Test Express server listening on http://localhost:${PORT}\n`);
+
+        const BASE_URL = `http://localhost:${PORT}`;
+
         const uniqueSuffix = Date.now();
         const testUser = {
             username: `pari_${uniqueSuffix}`,
@@ -42,7 +43,7 @@ async function runTests() {
         const regData = await regRes.json();
         console.log(`   Status: ${regRes.status}`);
         console.log("   Response:", JSON.stringify(regData));
-        if (regRes.status !== 201) throw new Error("Register failed");
+        if (regRes.status !== 201) throw new Error(`Register failed (${regRes.status}): ${JSON.stringify(regData)}`);
         console.log("   ✅ PASSED: User successfully registered with hashed password!\n");
 
         // TEST 2: Login User
@@ -55,7 +56,7 @@ async function runTests() {
         const loginData = await loginRes.json();
         console.log(`   Status: ${loginRes.status}`);
         console.log("   Response:", JSON.stringify(loginData));
-        if (loginRes.status !== 200) throw new Error("Login failed");
+        if (loginRes.status !== 200) throw new Error(`Login failed (${loginRes.status}): ${JSON.stringify(loginData)}`);
         console.log("   ✅ PASSED: Password verified with bcrypt & login successful!\n");
 
         // TEST 3: Login User with invalid password (security check)
@@ -81,7 +82,7 @@ async function runTests() {
         const logoutData = await logoutRes.json();
         console.log(`   Status: ${logoutRes.status}`);
         console.log("   Response:", JSON.stringify(logoutData));
-        if (logoutRes.status !== 200) throw new Error("Logout failed");
+        if (logoutRes.status !== 200) throw new Error(`Logout failed (${logoutRes.status}): ${JSON.stringify(logoutData)}`);
         console.log("   ✅ PASSED: Logout endpoint succeeded!\n");
 
         // TEST 5: Create Post (C in CRUD)
@@ -99,21 +100,21 @@ async function runTests() {
         const createData = await createRes.json();
         console.log(`   Status: ${createRes.status}`);
         console.log("   Response:", JSON.stringify(createData));
-        if (createRes.status !== 201 || !createData.post?._id) throw new Error("Create post failed");
+        if (createRes.status !== 201 || !createData.post?._id) throw new Error(`Create post failed (${createRes.status}): ${JSON.stringify(createData)}`);
         const createdPostId = createData.post._id;
         console.log(`   ✅ PASSED: Post created with ID: ${createdPostId}\n`);
 
-        // TEST 6: Get All Posts (R in CRUD)
+        // TEST 6: Get All Posts (Read All Posts)
         console.log("▶️ Test 6: GET /api/v1/posts/getPosts (Read All Posts)");
         const getRes = await fetch(`${BASE_URL}/api/v1/posts/getPosts`);
         const getData = await getRes.json();
         console.log(`   Status: ${getRes.status}`);
         console.log(`   Retrieved count: ${getData.length} posts`);
         console.log("   Sample post:", JSON.stringify(getData[getData.length - 1]));
-        if (getRes.status !== 200 || !Array.isArray(getData)) throw new Error("Get posts failed");
+        if (getRes.status !== 200 || !Array.isArray(getData)) throw new Error(`Get posts failed (${getRes.status}): ${JSON.stringify(getData)}`);
         console.log("   ✅ PASSED: Read all posts successfully!\n");
 
-        // TEST 7: Update Post (U in CRUD)
+        // TEST 7: Update Post (Update Post)
         console.log(`▶️ Test 7: PATCH /api/v1/posts/update/${createdPostId} (Update Post)`);
         const updatePayload = {
             description: "Updated description - Tutorial completed successfully!",
@@ -127,10 +128,10 @@ async function runTests() {
         const updateData = await updateRes.json();
         console.log(`   Status: ${updateRes.status}`);
         console.log("   Response:", JSON.stringify(updateData));
-        if (updateRes.status !== 200 || updateData.post.age !== 21) throw new Error("Update post failed");
+        if (updateRes.status !== 200 || updateData.post?.age !== 21) throw new Error(`Update post failed (${updateRes.status}): ${JSON.stringify(updateData)}`);
         console.log("   ✅ PASSED: Post successfully updated!\n");
 
-        // TEST 8: Delete Post (D in CRUD)
+        // TEST 8: Delete Post (Delete Post)
         console.log(`▶️ Test 8: DELETE /api/v1/posts/delete/${createdPostId} (Delete Post)`);
         const deleteRes = await fetch(`${BASE_URL}/api/v1/posts/delete/${createdPostId}`, {
             method: "DELETE"
@@ -138,18 +139,18 @@ async function runTests() {
         const deleteData = await deleteRes.json();
         console.log(`   Status: ${deleteRes.status}`);
         console.log("   Response:", JSON.stringify(deleteData));
-        if (deleteRes.status !== 200) throw new Error("Delete post failed");
+        if (deleteRes.status !== 200) throw new Error(`Delete post failed (${deleteRes.status}): ${JSON.stringify(deleteData)}`);
         console.log("   ✅ PASSED: Post deleted successfully!\n");
 
         console.log("==========================================");
         console.log("🎉 ALL 8 TESTS PASSED WITH 100% SUCCESS!");
         console.log("==========================================");
     } catch (err) {
-        console.error("❌ TEST FAILED:", err);
+        console.error("❌ TEST FAILED:", err.message);
+        process.exitCode = 1;
     } finally {
-        server.close();
+        if (server) server.close();
         await mongoose.disconnect();
-        process.exit(0);
     }
 }
 
