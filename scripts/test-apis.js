@@ -17,7 +17,9 @@ async function runTests() {
     await connectDB();
 
     // 2. Start Express Server
-    const server = app.listen(PORT);
+    const server = await new Promise((resolve) => {
+        const s = app.listen(PORT, () => resolve(s));
+    });
     console.log(`✅ Test Express server listening on http://localhost:${PORT}\n`);
 
     const BASE_URL = `http://localhost:${PORT}`;
