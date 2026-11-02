@@ -1,0 +1,28 @@
+{
+  "name": "intro-to-backend",
+  "version": "1.0.0",
+  "description": "Backend tutorial project implementing Express, MongoDB Mongoose, and CRUD operations",
+  "main": "backend/src/index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node backend/src/index.js",
+    "dev": "nodemon backend/src/index.js"
+  },
+  "keywords": [
+    "nodejs",
+    "express",
+    "mongodb",
+    "mongoose",
+    "crud",
+    "backend"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "mongoose": "^8.9.5",
+    "nodemon": "^3.1.9"
+  }
+}
