@@ -6,7 +6,8 @@
   "type": "module",
   "scripts": {
     "start": "node backend/src/index.js",
-    "dev": "nodemon backend/src/index.js"
+    "dev": "nodemon backend/src/index.js",
+    "test": "node scripts/test-apis.js"
   },
   "keywords": [
     "nodejs",
@@ -16,7 +17,7 @@
     "crud",
     "backend"
   ],
-  "author": "",
+  "author": "Pari Chobey",
   "license": "ISC",
   "dependencies": {
     "bcrypt": "^6.0.0",
