@@ -2,7 +2,8 @@ import dotenv from "dotenv";
 dotenv.config({ path: "./.env" });
 
 import mongoose from "mongoose";
-import app from "./backend/src/app.js";
+import connectDB from "../backend/src/config/database.js";
+import app from "../backend/src/app.js";
 
 const PORT = 4001; // use separate test port to avoid collision
 
@@ -13,8 +14,7 @@ async function runTests() {
 
     // 1. Connect to MongoDB
     console.log("📡 Connecting to live MongoDB Atlas...");
-    await mongoose.connect(process.env.MONGODB_URI);
-    console.log("✅ MongoDB Connected: " + mongoose.connection.host);
+    await connectDB();
 
     // 2. Start Express Server
     const server = app.listen(PORT);
